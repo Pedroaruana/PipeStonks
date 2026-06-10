@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  oxygenLevel  Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tasks      Task[]
+  categories Category[]
+  history    History[]
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#86efac")
+  userId    String
+  createdAt DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks Task[]
+}
+
+enum TaskStage {
+  SEED
+  SPROUT
+  SAPLING
+  TREE
+  FRUIT
+}
+
+enum TaskDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Task {
+  id           String         @id @default(cuid())
+  title        String
+  description  String?
+  stage        TaskStage      @default(SEED)
+  difficulty   TaskDifficulty @default(MEDIUM)
+  progress     Int            @default(0)
+  dueDate      DateTime?
+  completedAt  DateTime?
+  userId       String
+  categoryId   String?
+  googleTaskId String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id])
+  history  History[]
+}
+
+enum HistoryAction {
+  PLANTED
+  WATERED
+  HARVESTED
+  PRUNED
+}
+
+model History {
+  id        String        @id @default(cuid())
+  action    HistoryAction
+  taskId    String
+  userId    String
+  createdAt DateTime      @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
