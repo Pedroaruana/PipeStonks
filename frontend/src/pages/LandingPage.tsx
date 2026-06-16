@@ -67,17 +67,26 @@ export default function LandingPage() {
         </p>
 
         <div style={styles.actions}>
-          <Link to="/register" style={{ textDecoration: 'none' }}>
+          <Link to="/garden?visitor=true" style={{ textDecoration: 'none' }}>
             <button className="px-btn px-btn-green" style={{ fontSize: '8px', padding: '10px 20px' }}>
-              ▶ Começar a Plantar
+              ▶ Jogar agora
+            </button>
+          </Link>
+          <Link to="/register" style={{ textDecoration: 'none' }}>
+            <button className="px-btn px-btn-sand" style={{ fontSize: '7px', padding: '8px 16px' }}>
+              Criar conta
             </button>
           </Link>
           <Link to="/login" style={{ textDecoration: 'none' }}>
-            <button className="px-btn px-btn-sand" style={{ fontSize: '7px', padding: '8px 16px' }}>
+            <button className="px-btn" style={{ fontSize: '7px', padding: '8px 16px', background: 'transparent', borderColor: 'var(--text-muted)', color: 'var(--text-muted)' }}>
               Já tenho jardim
             </button>
           </Link>
         </div>
+
+        <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: 'var(--text-muted)', textAlign: 'center' }}>
+          Jogar agora não precisa de conta — crie uma para salvar seu progresso
+        </p>
 
         <div style={styles.features}>
           {FEATURES.map((f) => (
