@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuthStore } from '../store/auth'
 import PixelPlant from '../components/game/PixelPlant'
@@ -23,8 +23,11 @@ const DIFF_COLOR = { EASY: 'var(--toxic)', MEDIUM: 'var(--sand)', HARD: 'var(--d
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
+  const updateOxygen = useAuthStore((s) => s.updateOxygen)
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const [searchParams] = useSearchParams()
+  const isVisitor = !user && searchParams.get('visitor') === 'true'
 
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
@@ -41,15 +44,21 @@ export default function DashboardPage() {
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }); setShowForm(false); setTitle(''); setDesc('') },
   })
 
+  async function syncOxygen() {
+    if (!user) return
+    const { data } = await api.get('/auth/me')
+    if (data?.oxygenLevel !== undefined) updateOxygen(data.oxygenLevel)
+  }
+
   const water = useMutation({
     mutationFn: ({ id, progress }: { id: string; progress: number }) =>
       api.patch(`/tasks/${id}/water`, { progress }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }); syncOxygen() },
   })
 
   const harvest = useMutation({
     mutationFn: (id: string) => api.patch(`/tasks/${id}/harvest`, {}),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks'] }); syncOxygen() },
   })
 
   const prune = useMutation({
@@ -76,6 +85,16 @@ export default function DashboardPage() {
           <button className="px-btn px-btn-red" onClick={handleLogout} style={{ fontSize: '6px' }}>Sair</button>
         </div>
       </header>
+
+      {/* Visitor banner */}
+      {isVisitor && (
+        <div style={styles.visitorBanner}>
+          <span>⚠ Modo visitante — progresso não salvo</span>
+          <Link to="/register" style={{ color: 'var(--toxic)', fontFamily: 'var(--pixel-font)', fontSize: '6px', textDecoration: 'none' }}>
+            Criar conta para salvar →
+          </Link>
+        </div>
+      )}
 
       {/* Main */}
       <main style={styles.main}>
@@ -175,4 +194,5 @@ const styles: Record<string, React.CSSProperties> = {
   tag: { fontFamily: 'var(--pixel-font)', fontSize: '5px', color: 'var(--text-muted)', background: 'var(--bg-dark)', padding: '2px 4px', border: '1px solid var(--border)' },
   actions: { display: 'flex', gap: '4px', flexWrap: 'wrap' },
   empty: { fontFamily: 'var(--pixel-font)', fontSize: '7px', color: 'var(--text-muted)', textAlign: 'center', padding: '40px' },
+  visitorBanner: { background: '#2a1e08', borderBottom: '2px solid var(--sand)', padding: '8px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'var(--pixel-font)', fontSize: '6px', color: 'var(--sand)' },
 }

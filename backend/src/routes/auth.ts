@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { PrismaClient } from '@prisma/client'
 import { createHash } from 'crypto'
 import { registerSchema, loginSchema } from '../schemas/auth.js'
+import { authenticate } from '../middleware/authenticate.js'
 
 const prisma = new PrismaClient()
 
@@ -10,6 +11,13 @@ function hashPassword(password: string): string {
 }
 
 export async function authRoutes(app: FastifyInstance) {
+  app.get('/me', { onRequest: [authenticate] }, async (request) => {
+    const userId = (request.user as { sub: string }).sub
+    return prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, email: true, oxygenLevel: true },
+    })
+  })
   app.post('/register', async (request, reply) => {
     const result = registerSchema.safeParse(request.body)
     if (!result.success) {
