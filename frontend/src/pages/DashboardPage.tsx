@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuthStore } from '../store/auth'
+import { useVisitorStore } from '../store/visitor'
 import PixelPlant from '../components/game/PixelPlant'
 import OxygenBar from '../components/game/OxygenBar'
 
@@ -29,15 +30,21 @@ export default function DashboardPage() {
   const [searchParams] = useSearchParams()
   const isVisitor = !user && searchParams.get('visitor') === 'true'
 
+  const visitor = useVisitorStore()
+
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
   const [desc, setDesc] = useState('')
   const [diff, setDiff] = useState<'EASY' | 'MEDIUM' | 'HARD'>('MEDIUM')
 
-  const { data: tasks = [], isLoading } = useQuery<Task[]>({
+  const { data: apiTasks = [], isLoading } = useQuery<Task[]>({
     queryKey: ['tasks'],
     queryFn: () => api.get('/tasks').then((r) => r.data),
+    enabled: !!user,
   })
+
+  const tasks: Task[] = user ? apiTasks : visitor.tasks.filter((t) => !t.completedAt)
+  const oxygenLevel = user ? (user.oxygenLevel ?? 0) : visitor.oxygenLevel
 
   const plant = useMutation({
     mutationFn: (body: object) => api.post('/tasks', body),
@@ -66,6 +73,31 @@ export default function DashboardPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   })
 
+  function handlePlant(e: React.FormEvent) {
+    e.preventDefault()
+    if (isVisitor) {
+      visitor.addTask(title, desc, diff)
+      setShowForm(false); setTitle(''); setDesc('')
+    } else {
+      plant.mutate({ title, description: desc, difficulty: diff })
+    }
+  }
+
+  function handleWater(task: Task) {
+    if (isVisitor) visitor.waterTask(task.id)
+    else water.mutate({ id: task.id, progress: Math.min(100, task.progress + 20) })
+  }
+
+  function handleHarvest(id: string) {
+    if (isVisitor) visitor.harvestTask(id)
+    else harvest.mutate(id)
+  }
+
+  function handlePrune(id: string) {
+    if (isVisitor) visitor.pruneTask(id)
+    else prune.mutate(id)
+  }
+
   function handleLogout() { logout(); navigate('/') }
 
   return (
@@ -74,12 +106,12 @@ export default function DashboardPage() {
       <header style={styles.header}>
         <div style={styles.headerLeft}>
           <span style={styles.logo}>🌱 WASTELAND GARDEN</span>
-          <span style={styles.greeting}>Bom dia, {user?.name}</span>
+          <span style={styles.greeting}>{isVisitor ? 'Modo visitante' : `Bom dia, ${user?.name}`}</span>
         </div>
         <div style={styles.headerRight}>
           <div style={{ width: '120px' }}>
-            <span style={styles.oxyLabel}>O₂ {user?.oxygenLevel ?? 0}</span>
-            <OxygenBar value={Math.min(100, user?.oxygenLevel ?? 0)} />
+            <span style={styles.oxyLabel}>O₂ {oxygenLevel}</span>
+            <OxygenBar value={Math.min(100, oxygenLevel)} />
           </div>
           <Link to="/history" style={styles.navLink}>Estufa</Link>
           <button className="px-btn px-btn-red" onClick={handleLogout} style={{ fontSize: '6px' }}>Sair</button>
@@ -107,7 +139,7 @@ export default function DashboardPage() {
 
         {/* New task form */}
         {showForm && (
-          <form onSubmit={(e) => { e.preventDefault(); plant.mutate({ title, description: desc, difficulty: diff }) }} style={styles.form}>
+          <form onSubmit={handlePlant} style={styles.form}>
             <input style={styles.input} placeholder="Nome da tarefa..." value={title} onChange={(e) => setTitle(e.target.value)} required />
             <input style={styles.input} placeholder="Descrição (opcional)" value={desc} onChange={(e) => setDesc(e.target.value)} />
             <select style={styles.input} value={diff} onChange={(e) => setDiff(e.target.value as typeof diff)}>
@@ -121,7 +153,7 @@ export default function DashboardPage() {
           </form>
         )}
 
-        {isLoading && <p style={styles.empty}>Carregando jardim...</p>}
+        {isLoading && user && <p style={styles.empty}>Carregando jardim...</p>}
         {!isLoading && tasks.length === 0 && (
           <p style={styles.empty}>Nenhuma planta ainda. Plante sua primeira tarefa!</p>
         )}
@@ -149,15 +181,15 @@ export default function DashboardPage() {
 
                 <div style={styles.actions}>
                   <button className="px-btn px-btn-green" style={{ fontSize: '6px' }}
-                    onClick={() => water.mutate({ id: task.id, progress: Math.min(100, task.progress + 20) })}>
+                    onClick={() => handleWater(task)}>
                     💧 Regar
                   </button>
                   <button className="px-btn px-btn-sand" style={{ fontSize: '6px' }}
-                    onClick={() => harvest.mutate(task.id)}>
+                    onClick={() => handleHarvest(task.id)}>
                     🌾 Colher
                   </button>
                   <button className="px-btn px-btn-red" style={{ fontSize: '6px' }}
-                    onClick={() => prune.mutate(task.id)}>
+                    onClick={() => handlePrune(task.id)}>
                     ✂
                   </button>
                 </div>
