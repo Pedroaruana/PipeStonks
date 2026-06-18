@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/auth'
 import { useVisitorStore } from '../store/visitor'
 import PixelPlant from '../components/game/PixelPlant'
 import OxygenBar from '../components/game/OxygenBar'
+import GameScene from '../components/game/GameScene'
 
 interface Task {
   id: string
@@ -36,6 +37,7 @@ export default function DashboardPage() {
   const [title, setTitle] = useState('')
   const [desc, setDesc] = useState('')
   const [diff, setDiff] = useState<'EASY' | 'MEDIUM' | 'HARD'>('MEDIUM')
+  const [activeId, setActiveId] = useState<string | undefined>()
 
   const { data: apiTasks = [], isLoading } = useQuery<Task[]>({
     queryKey: ['tasks'],
@@ -84,16 +86,19 @@ export default function DashboardPage() {
   }
 
   function handleWater(task: Task) {
+    setActiveId(task.id)
     if (isVisitor) visitor.waterTask(task.id)
     else water.mutate({ id: task.id, progress: Math.min(100, task.progress + 20) })
   }
 
   function handleHarvest(id: string) {
+    setActiveId(id)
     if (isVisitor) visitor.harvestTask(id)
     else harvest.mutate(id)
   }
 
   function handlePrune(id: string) {
+    setActiveId(id)
     if (isVisitor) visitor.pruneTask(id)
     else prune.mutate(id)
   }
@@ -117,6 +122,12 @@ export default function DashboardPage() {
           <button className="px-btn px-btn-red" onClick={handleLogout} style={{ fontSize: '6px' }}>Sair</button>
         </div>
       </header>
+
+      {/* Game scene */}
+      <GameScene
+        plants={tasks.map((t) => ({ id: t.id, stage: t.stage }))}
+        activeId={activeId}
+      />
 
       {/* Visitor banner */}
       {isVisitor && (
