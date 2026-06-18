@@ -142,6 +142,12 @@ button.px-btn-sand:hover { background: #4e3a14; }
   50% { transform: scale(1.05); }
 }
 
+@keyframes bgZoom {
+  0%   { transform: scale(1.1) translateX(0px); }
+  50%  { transform: scale(1.15) translateX(-10px); }
+  100% { transform: scale(1.1) translateX(10px); }
+}
+
 .animate-float { animation: float 3s ease-in-out infinite; }
 .animate-flicker { animation: flicker 4s ease-in-out infinite; }
 .animate-grow { animation: grow-pulse 2s ease-in-out infinite; }

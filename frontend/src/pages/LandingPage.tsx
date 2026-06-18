@@ -1,262 +1,231 @@
 import { Link } from 'react-router-dom'
-import PixelCharacter from '../components/game/PixelCharacter'
-import PixelPlant from '../components/game/PixelPlant'
-import OxygenBar from '../components/game/OxygenBar'
+import bg from '../c98146de-post-apocalyptic-wasteland-in-gritty-pixel-art-style-compressed.jpg'
 
 export default function LandingPage() {
   return (
     <div style={styles.root}>
-      {/* Sky / toxic atmosphere */}
-      <div style={styles.sky}>
-        <span style={styles.year}>2056</span>
-        <div style={styles.clouds}>
-          {[...Array(5)].map((_, i) => (
-            <div key={i} style={{ ...styles.cloud, left: `${10 + i * 18}%`, animationDelay: `${i * 0.8}s` }} />
-          ))}
+      {/* Background with slow zoom animation */}
+      <div style={styles.bg} />
+
+      {/* Overlay layers */}
+      <div style={styles.overlayDark} />
+      <div style={styles.overlayVignette} />
+
+      {/* Scanlines */}
+      <div style={styles.scanlines} />
+
+      {/* Floating dust particles */}
+      {[...Array(8)].map((_, i) => (
+        <div key={i} style={{
+          ...styles.particle,
+          left: `${10 + i * 12}%`,
+          animationDuration: `${6 + i * 1.5}s`,
+          animationDelay: `${i * 0.7}s`,
+          width: `${2 + (i % 3)}px`,
+          height: `${2 + (i % 3)}px`,
+          opacity: 0.2 + (i % 3) * 0.1,
+        }} />
+      ))}
+
+      {/* Content */}
+      <div style={styles.content}>
+        {/* Year badge */}
+        <div style={styles.yearBadge}>
+          <span style={styles.yearText}>— 2056 —</span>
         </div>
-      </div>
 
-      {/* Ground scene */}
-      <div style={styles.scene}>
-        <PixelCharacter />
-
-        <div style={styles.plantRow}>
-          <PixelPlant stage="SEED" label="Plante" />
-          <div style={styles.arrow}>›</div>
-          <PixelPlant stage="SPROUT" label="Regue" />
-          <div style={styles.arrow}>›</div>
-          <PixelPlant stage="SAPLING" label="Cresça" />
-          <div style={styles.arrow}>›</div>
-          <PixelPlant stage="TREE" label="Colha" />
-          <div style={styles.arrow}>›</div>
-          <PixelPlant stage="FRUIT" label="Oxigênio!" glow />
-        </div>
-
-        <div style={styles.oxygenDemo}>
-          <span style={styles.oxygenLabel}>Nível de O₂</span>
-          <OxygenBar value={62} animated />
-        </div>
-      </div>
-
-      {/* Ground line */}
-      <div style={styles.ground} />
-
-      {/* Foreground ruins */}
-      <div style={styles.ruins}>
-        {[...Array(8)].map((_, i) => (
-          <div key={i} style={{ ...styles.ruin, height: `${20 + Math.sin(i) * 14}px`, left: `${i * 13}%` }} />
-        ))}
-      </div>
-
-      {/* Content panel */}
-      <div style={styles.panel}>
+        {/* Title */}
         <h1 style={styles.title}>
-          <span style={{ color: 'var(--toxic)' }}>WASTELAND</span>
-          <br />
-          GARDEN
+          WASTELAND<br />
+          <span style={styles.titleAccent}>GARDEN</span>
         </h1>
 
         <p style={styles.tagline}>
-          O ar acabou.<br />
-          Mas você ainda pode plantar.
+          O ar acabou. Mas você ainda pode plantar.
         </p>
 
-        <p style={styles.desc}>
-          Cada tarefa é uma planta. Você cultiva, rega e acompanha o crescimento
-          num mundo onde cada grão de oxigênio importa.
-        </p>
-
-        <div style={styles.actions}>
-          <Link to="/garden?visitor=true" style={{ textDecoration: 'none' }}>
-            <button className="px-btn px-btn-green" style={{ fontSize: '8px', padding: '10px 20px' }}>
-              ▶ Jogar agora
-            </button>
-          </Link>
-          <Link to="/register" style={{ textDecoration: 'none' }}>
-            <button className="px-btn px-btn-sand" style={{ fontSize: '7px', padding: '8px 16px' }}>
-              Criar conta
-            </button>
-          </Link>
-          <Link to="/login" style={{ textDecoration: 'none' }}>
-            <button className="px-btn" style={{ fontSize: '7px', padding: '8px 16px', background: 'transparent', borderColor: 'var(--text-muted)', color: 'var(--text-muted)' }}>
-              Já tenho jardim
-            </button>
-          </Link>
+        <div style={styles.divider}>
+          <span style={styles.dividerLine} />
+          <span style={styles.dividerIcon}>✦</span>
+          <span style={styles.dividerLine} />
         </div>
 
-        <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: 'var(--text-muted)', textAlign: 'center' }}>
+        {/* Buttons */}
+        <div style={styles.buttons}>
+          <Link to="/garden?visitor=true" style={{ textDecoration: 'none' }}>
+            <button style={styles.btnPrimary}>
+              ▶ JOGAR AGORA
+            </button>
+          </Link>
+
+          <div style={styles.btnRow}>
+            <Link to="/register" style={{ textDecoration: 'none' }}>
+              <button style={styles.btnSecondary}>CRIAR CONTA</button>
+            </Link>
+            <Link to="/login" style={{ textDecoration: 'none' }}>
+              <button style={styles.btnGhost}>ENTRAR</button>
+            </Link>
+          </div>
+        </div>
+
+        <p style={styles.hint}>
           Jogar agora não precisa de conta — crie uma para salvar seu progresso
         </p>
-
-        <div style={styles.features}>
-          {FEATURES.map((f) => (
-            <div key={f.label} style={styles.feature}>
-              <span style={{ color: 'var(--toxic)', fontSize: '16px' }}>{f.icon}</span>
-              <span style={styles.featureLabel}>{f.label}</span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   )
 }
 
-const FEATURES = [
-  { icon: '🌱', label: 'Plante tarefas' },
-  { icon: '💧', label: 'Regue com progresso' },
-  { icon: '🌳', label: 'Colha concluídas' },
-  { icon: '🔗', label: 'Sync Google Tasks' },
-]
-
 const styles: Record<string, React.CSSProperties> = {
   root: {
     minHeight: '100vh',
-    background: 'linear-gradient(180deg, #1a0e05 0%, #0d0d0d 60%)',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  sky: {
     width: '100%',
-    height: '160px',
-    background: 'linear-gradient(180deg, #1a0805 0%, #2d1a08 50%, transparent 100%)',
     position: 'relative',
     display: 'flex',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: '16px',
+    overflow: 'hidden',
+    background: '#0a0806',
   },
-  year: {
-    fontFamily: 'var(--pixel-font)',
-    fontSize: '10px',
-    color: 'var(--rust)',
-    letterSpacing: '4px',
-    opacity: 0.6,
-    animation: 'flicker 4s ease-in-out infinite',
-  },
-  clouds: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' },
-  cloud: {
+  bg: {
     position: 'absolute',
-    top: '30px',
-    width: '40px',
-    height: '12px',
-    background: 'rgba(160,74,42,0.2)',
-    boxShadow: '0 0 8px rgba(160,74,42,0.3)',
-    animation: 'float 6s ease-in-out infinite',
+    inset: '-10%',
+    backgroundImage: `url(${bg})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    imageRendering: 'pixelated',
+    animation: 'bgZoom 30s ease-in-out infinite alternate',
   },
-  scene: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '24px',
-    paddingTop: '8px',
-    zIndex: 1,
-  },
-  plantRow: {
-    display: 'flex',
-    alignItems: 'flex-end',
-    gap: '12px',
-  },
-  arrow: {
-    fontFamily: 'var(--pixel-font)',
-    color: 'var(--text-muted)',
-    fontSize: '14px',
-    paddingBottom: '20px',
-  },
-  oxygenDemo: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '8px',
-    width: '200px',
-  },
-  oxygenLabel: {
-    fontFamily: 'var(--pixel-font)',
-    fontSize: '7px',
-    color: 'var(--oxygen)',
-    letterSpacing: '2px',
-  },
-  ground: {
-    width: '100%',
-    height: '4px',
-    background: 'repeating-linear-gradient(90deg, var(--sand) 0px, var(--sand) 8px, var(--rust) 8px, var(--rust) 16px)',
-    opacity: 0.4,
-    marginTop: '8px',
-  },
-  ruins: {
+  overlayDark: {
     position: 'absolute',
-    bottom: '320px',
-    left: 0,
-    width: '100%',
-    height: '60px',
+    inset: 0,
+    background: 'rgba(5, 3, 2, 0.65)',
+  },
+  overlayVignette: {
+    position: 'absolute',
+    inset: 0,
+    background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.85) 100%)',
+  },
+  scanlines: {
+    position: 'absolute',
+    inset: 0,
+    background: 'repeating-linear-gradient(transparent 0px, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)',
     pointerEvents: 'none',
   },
-  ruin: {
+  particle: {
     position: 'absolute',
-    bottom: 0,
-    width: '10px',
-    background: 'var(--ash)',
-    opacity: 0.3,
+    bottom: '-10px',
+    background: '#c4a35a',
+    borderRadius: '1px',
+    animation: 'float 6s ease-in-out infinite',
+    imageRendering: 'pixelated',
   },
-  panel: {
-    width: '100%',
-    maxWidth: '520px',
-    padding: '32px 24px',
+  content: {
+    position: 'relative',
+    zIndex: 2,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     gap: '20px',
-    zIndex: 2,
+    padding: '40px 24px',
+    textAlign: 'center',
+  },
+  yearBadge: {
+    border: '1px solid rgba(196,163,90,0.4)',
+    padding: '4px 16px',
+    background: 'rgba(196,163,90,0.08)',
+  },
+  yearText: {
+    fontFamily: 'var(--pixel-font)',
+    fontSize: '7px',
+    color: '#c4a35a',
+    letterSpacing: '4px',
   },
   title: {
     fontFamily: 'var(--pixel-font)',
-    fontSize: '20px',
-    textAlign: 'center',
-    lineHeight: 1.6,
-    color: 'var(--text-primary)',
-    textShadow: '0 0 20px rgba(122,182,72,0.4)',
+    fontSize: 'clamp(22px, 5vw, 42px)',
+    color: '#e8dcc8',
+    lineHeight: 1.5,
+    textShadow: '0 0 40px rgba(122,182,72,0.3), 2px 2px 0px rgba(0,0,0,0.8)',
+    margin: 0,
+  },
+  titleAccent: {
+    color: '#7ab648',
+    textShadow: '0 0 30px rgba(122,182,72,0.6), 0 0 60px rgba(122,182,72,0.2)',
   },
   tagline: {
     fontFamily: 'var(--pixel-font)',
     fontSize: '9px',
-    color: 'var(--rust)',
-    textAlign: 'center',
-    lineHeight: 2,
-    letterSpacing: '1px',
+    color: '#a04a2a',
+    letterSpacing: '2px',
+    margin: 0,
   },
-  desc: {
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    width: '200px',
+  },
+  dividerLine: {
+    flex: 1,
+    height: '1px',
+    background: 'rgba(196,163,90,0.3)',
+    display: 'block',
+  },
+  dividerIcon: {
     fontFamily: 'var(--pixel-font)',
-    fontSize: '7px',
-    color: 'var(--text-secondary)',
-    textAlign: 'center',
-    lineHeight: 2.2,
-    maxWidth: '380px',
+    fontSize: '8px',
+    color: 'rgba(196,163,90,0.5)',
   },
-  actions: {
-    display: 'flex',
-    gap: '16px',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  features: {
-    display: 'flex',
-    gap: '20px',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginTop: '8px',
-  },
-  feature: {
+  buttons: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '6px',
+    gap: '12px',
   },
-  featureLabel: {
+  btnPrimary: {
+    fontFamily: 'var(--pixel-font)',
+    fontSize: '10px',
+    padding: '14px 32px',
+    background: '#2d5a1e',
+    border: '2px solid #7ab648',
+    color: '#7ab648',
+    cursor: 'pointer',
+    letterSpacing: '2px',
+    boxShadow: '0 0 20px rgba(122,182,72,0.3)',
+    transition: 'all 0.1s',
+  },
+  btnRow: {
+    display: 'flex',
+    gap: '12px',
+  },
+  btnSecondary: {
+    fontFamily: 'var(--pixel-font)',
+    fontSize: '7px',
+    padding: '10px 20px',
+    background: 'rgba(196,163,90,0.1)',
+    border: '2px solid #c4a35a',
+    color: '#c4a35a',
+    cursor: 'pointer',
+    letterSpacing: '2px',
+    transition: 'all 0.1s',
+  },
+  btnGhost: {
+    fontFamily: 'var(--pixel-font)',
+    fontSize: '7px',
+    padding: '10px 20px',
+    background: 'transparent',
+    border: '2px solid rgba(107,96,85,0.5)',
+    color: '#6b6055',
+    cursor: 'pointer',
+    letterSpacing: '2px',
+    transition: 'all 0.1s',
+  },
+  hint: {
     fontFamily: 'var(--pixel-font)',
     fontSize: '6px',
-    color: 'var(--text-secondary)',
-    textAlign: 'center',
+    color: '#4a3f33',
+    letterSpacing: '1px',
+    margin: 0,
   },
 }
