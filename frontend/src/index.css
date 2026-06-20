@@ -151,3 +151,31 @@ button.px-btn-sand:hover { background: #4e3a14; }
 .animate-float { animation: float 3s ease-in-out infinite; }
 .animate-flicker { animation: flicker 4s ease-in-out infinite; }
 .animate-grow { animation: grow-pulse 2s ease-in-out infinite; }
+
+@keyframes oxyIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shockwave {
+  0%   { transform: scale(1);  opacity: 0.9; }
+  100% { transform: scale(18); opacity: 0; }
+}
+@keyframes oxyText {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes scanReveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
+}
+@keyframes particleRise {
+  0%   { transform: translateY(0)      rotate(0deg);   opacity: 0.9; }
+  100% { transform: translateY(-110vh) rotate(540deg); opacity: 0; }
+}
+@keyframes glitchBar {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-3px); }
+  40%      { transform: translateX(3px); }
+  60%      { transform: translateX(-2px); }
+  80%      { transform: translateX(2px); }
+}
