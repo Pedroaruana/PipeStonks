@@ -40,26 +40,19 @@ enum TaskStage {
   FRUIT
 }
 
-enum TaskDifficulty {
-  EASY
-  MEDIUM
-  HARD
-}
-
 model Task {
-  id           String         @id @default(cuid())
-  title        String
-  description  String?
-  stage        TaskStage      @default(SEED)
-  difficulty   TaskDifficulty @default(MEDIUM)
-  progress     Int            @default(0)
-  dueDate      DateTime?
-  completedAt  DateTime?
-  userId       String
-  categoryId   String?
-  googleTaskId String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id            String     @id @default(cuid())
+  title         String
+  description   String?
+  stage         TaskStage  @default(SEED)
+  plantedAt     DateTime   @default(now())
+  lastWateredAt DateTime?
+  completedAt   DateTime?
+  userId        String
+  categoryId    String?
+  googleTaskId  String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   category Category? @relation(fields: [categoryId], references: [id])
