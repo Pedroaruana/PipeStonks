@@ -531,17 +531,17 @@ export default function DashboardPage() {
   })
 
   function handlePlant(title: string) {
-    if (isVisitor) visitor.addTask(title, '')
+    if (!user) visitor.addTask(title, '')
     else plantMutation.mutate(title)
   }
 
   function handleWater(id: string) {
-    if (isVisitor) visitor.waterTask(id)
+    if (!user) visitor.waterTask(id)
     else waterMutation.mutate(id)
   }
 
   function handleHarvest(id: string) {
-    if (isVisitor) visitor.harvestTask(id)
+    if (!user) visitor.harvestTask(id)
     else harvestMutation.mutate(id)
   }
 
