@@ -346,6 +346,96 @@ function PotSlot({ task, slotIndex, onWater, onPlant, onHarvest }: PotSlotProps)
   )
 }
 
+interface GoogleTask { id: string; title: string; notes?: string }
+
+function GoogleTasksModal({ token, onClose, onImported }: { token: string; onClose: () => void; onImported: () => void }) {
+  const [tasks, setTasks] = useState<GoogleTask[]>([])
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [loading, setLoading] = useState(true)
+  const [importing, setImporting] = useState(false)
+  const [notConnected, setNotConnected] = useState(false)
+
+  useEffect(() => {
+    api.get('/google-tasks').then((r) => {
+      setTasks(r.data)
+      setLoading(false)
+    }).catch((e) => {
+      if (e.response?.status === 401) setNotConnected(true)
+      setLoading(false)
+    })
+  }, [])
+
+  function toggle(id: string) {
+    setSelected((s) => {
+      const n = new Set(s)
+      n.has(id) ? n.delete(id) : n.add(id)
+      return n
+    })
+  }
+
+  async function doImport() {
+    if (!selected.size) return
+    setImporting(true)
+    await api.post('/google-tasks/import', { taskIds: Array.from(selected) })
+    setImporting(false)
+    onImported()
+    onClose()
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)' }}>
+      <div style={{ position: 'relative', width: 440, background: 'rgba(8,6,2,0.97)', border: '2px solid #3d2e10', padding: '28px 24px' }}>
+        {[['top','left'],['top','right'],['bottom','left'],['bottom','right']].map(([v,h]) => (
+          <div key={`${v}${h}`} style={{ position: 'absolute', [v]: 0, [h]: 0 }}>
+            <div style={{ position: 'absolute', [v]: 0, [h]: 0, width: 10, height: 2, background: '#c4a35a' }}/>
+            <div style={{ position: 'absolute', [v]: 0, [h]: 0, width: 2, height: 10, background: '#c4a35a' }}/>
+          </div>
+        ))}
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '9px', color: '#c4a35a' }}>GOOGLE TASKS</p>
+          <button onClick={onClose} style={{ fontFamily: 'var(--pixel-font)', fontSize: '7px', background: 'transparent', border: '1px solid #3d3428', color: '#6b6055', padding: '3px 8px', cursor: 'pointer' }}>✕</button>
+        </div>
+
+        {notConnected ? (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#8a7a65', marginBottom: 16, lineHeight: 2 }}>Conecte sua conta Google para importar tarefas como plantas.</p>
+            <a
+              href={`http://localhost:3333/auth/google?token=${token}`}
+              style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', background: 'transparent', border: '1px solid #4fc3a0', color: '#4fc3a0', padding: '8px 16px', textDecoration: 'none', display: 'inline-block' }}
+            >
+              🔗 CONECTAR GOOGLE
+            </a>
+          </div>
+        ) : loading ? (
+          <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#4a3f33', textAlign: 'center', padding: 20 }}>Carregando...</p>
+        ) : tasks.length === 0 ? (
+          <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#4a3f33', textAlign: 'center', padding: 20 }}>Nenhuma tarefa pendente no Google Tasks.</p>
+        ) : (
+          <>
+            <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '5px', color: '#4a3f33', marginBottom: 10 }}>Selecione as tarefas para plantar:</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 240, overflowY: 'auto', marginBottom: 16 }}>
+              {tasks.map((t) => (
+                <label key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', background: selected.has(t.id) ? '#1a2e10' : '#1a1410', border: `1px solid ${selected.has(t.id) ? '#7ab648' : '#3d3428'}`, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={selected.has(t.id)} onChange={() => toggle(t.id)} style={{ accentColor: '#7ab648' }} />
+                  <span style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#e8dcc8' }}>{t.title}</span>
+                </label>
+              ))}
+            </div>
+            <button
+              onClick={doImport}
+              disabled={!selected.size || importing}
+              style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', width: '100%', padding: '8px', background: 'transparent', border: `1px solid ${selected.size ? '#7ab648' : '#3d3428'}`, color: selected.size ? '#7ab648' : '#3d3428', cursor: selected.size ? 'pointer' : 'not-allowed' }}
+            >
+              {importing ? 'PLANTANDO...' : `🌱 PLANTAR ${selected.size} TAREFA${selected.size !== 1 ? 'S' : ''}`}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const TUTORIAL_KEY = 'wg-tutorial-seen'
 
 const STEPS = [
@@ -486,6 +576,8 @@ export default function DashboardPage() {
 
   const [showOxyAnim, setShowOxyAnim] = useState(false)
   const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem(TUTORIAL_KEY))
+  const [showGoogleModal, setShowGoogleModal] = useState(false)
+  const token = useAuthStore((s) => s.token)
   const prevOxyRef = useRef(0)
 
   const { data: apiTasks = [] } = useQuery<Task[]>({
@@ -551,6 +643,7 @@ export default function DashboardPage() {
     <div style={{ minHeight: '100vh', position: 'relative', display: 'flex', flexDirection: 'column' }}>
       {showTutorial && <TutorialModal onClose={() => setShowTutorial(false)} />}
       {showOxyAnim && <OxygenRestoredOverlay onDone={() => setShowOxyAnim(false)} />}
+      {showGoogleModal && user && token && <GoogleTasksModal token={token} onClose={() => setShowGoogleModal(false)} onImported={() => qc.invalidateQueries({ queryKey: ['tasks'] })} />}
       <div style={{ position: 'fixed', inset: 0, backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0, imageRendering: 'pixelated' }} />
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.62)', zIndex: 1 }} />
 
@@ -564,6 +657,11 @@ export default function DashboardPage() {
             <span style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#4fc3a0', display: 'block', marginBottom: 2 }}>O₂ {oxygenLevel}</span>
             <OxygenBar value={barValue} />
           </div>
+          {user && (
+            <button onClick={() => setShowGoogleModal(true)} style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', background: 'transparent', border: '1px solid #4fc3a0', color: '#4fc3a0', padding: '4px 8px', cursor: 'pointer' }}>
+              G TASKS
+            </button>
+          )}
           <Link to="/history" style={{ fontFamily: 'var(--pixel-font)', fontSize: '7px', color: '#c4a35a', textDecoration: 'none' }}>Estufa</Link>
           <button className="px-btn px-btn-red" onClick={() => { logout(); navigate('/') }} style={{ fontSize: '6px' }}>Sair</button>
         </div>

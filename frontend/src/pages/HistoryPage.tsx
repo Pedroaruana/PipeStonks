@@ -139,7 +139,6 @@ function CornerBrackets() {
 export default function HistoryPage() {
   const token = useAuthStore((s) => s.token)
   const visitorTasks = useVisitorStore((s) => s.tasks)
-  const visitorOxy = useVisitorStore((s) => s.oxygenLevel)
   const [filter, setFilter] = useState<PlantType | 'all'>('all')
 
   const { data: apiTasks = [] } = useQuery<HarvestedTask[]>({
