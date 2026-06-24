@@ -179,3 +179,26 @@ button.px-btn-sand:hover { background: #4e3a14; }
   60%      { transform: translateX(-2px); }
   80%      { transform: translateX(2px); }
 }
+
+@keyframes acidDrop {
+  0%   { transform: translateY(-10px); opacity: 0; }
+  10%  { opacity: 0.7; }
+  90%  { opacity: 0.5; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+@keyframes dustFloat {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  15%  { opacity: 0.6; }
+  85%  { opacity: 0.3; }
+  100% { transform: translate(var(--dx), -80px) rotate(360deg); opacity: 0; }
+}
+
+@keyframes stageUp {
+  0%   { filter: brightness(1)    drop-shadow(0 0 0px transparent); transform: scale(1); }
+  30%  { filter: brightness(2.2)  drop-shadow(0 0 12px #7ab648);   transform: scale(1.18); }
+  60%  { filter: brightness(1.6)  drop-shadow(0 0 8px #4fc3a0);    transform: scale(1.08); }
+  100% { filter: brightness(1)    drop-shadow(0 0 0px transparent); transform: scale(1); }
+}
+
+.animate-stage-up { animation: stageUp 0.9s ease-out forwards; }
