@@ -202,3 +202,34 @@ button.px-btn-sand:hover { background: #4e3a14; }
 }
 
 .animate-stage-up { animation: stageUp 0.9s ease-out forwards; }
+
+/* ── Mobile responsive ───────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  html, body, #root { font-size: 7px; }
+
+  .wg-header {
+    flex-wrap: wrap;
+    gap: 10px !important;
+    padding: 10px 14px !important;
+  }
+  .wg-header-right {
+    flex-wrap: wrap;
+    gap: 10px !important;
+  }
+  .wg-oxygen-bar { width: 90px !important; }
+
+  .wg-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    width: 100%;
+  }
+  .wg-pot-slot {
+    width: 100% !important;
+  }
+
+  .wg-visitor-banner {
+    flex-direction: column !important;
+    gap: 6px !important;
+    font-size: 5px !important;
+  }
+}
