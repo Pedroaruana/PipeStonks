@@ -236,11 +236,22 @@ interface PotSlotProps {
 function PotSlot({ task, slotIndex, onWater, onPlant, onHarvest }: PotSlotProps) {
   const [planting, setPlanting] = useState(false)
   const [title, setTitle] = useState('')
+  const [stageAnim, setStageAnim] = useState(false)
+  const prevStageRef = useRef<string | undefined>(undefined)
   const plantType = PLANT_TYPES[slotIndex]
   const occupied = !!task
   const waterable = canWaterNow(task?.lastWateredAt)
   const timer = task?.lastWateredAt ? countdown(task.lastWateredAt) : null
   const isFruit = task?.stage === 'FRUIT'
+
+  useEffect(() => {
+    if (task?.stage && prevStageRef.current && task.stage !== prevStageRef.current) {
+      setStageAnim(true)
+      const t = setTimeout(() => setStageAnim(false), 900)
+      return () => clearTimeout(t)
+    }
+    prevStageRef.current = task?.stage
+  }, [task?.stage])
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -279,7 +290,7 @@ function PotSlot({ task, slotIndex, onWater, onPlant, onHarvest }: PotSlotProps)
       </p>
 
       {/* Plant */}
-      <div style={{ width: 80, display: 'flex', justifyContent: 'center', marginBottom: -2 }}>
+      <div className={stageAnim ? 'animate-stage-up' : undefined} style={{ width: 80, display: 'flex', justifyContent: 'center', marginBottom: -2 }}>
         <PlantSVG type={plantType} stage={task?.stage ?? 'SEED'} />
       </div>
 
@@ -432,6 +443,59 @@ function GoogleTasksModal({ token, onClose, onImported }: { token: string; onClo
           </>
         )}
       </div>
+    </div>
+  )
+}
+
+const ACID_DROPS = Array.from({ length: 18 }, (_, i) => ({
+  left: `${4 + (i * 5.4) % 93}%`,
+  delay: `${(i * 0.31) % 4}s`,
+  dur: `${1.8 + (i * 0.17) % 1.4}s`,
+  width: i % 3 === 0 ? 2 : 1,
+  height: 6 + (i * 3) % 8,
+  color: i % 2 === 0 ? '#7ab64888' : '#4fc3a066',
+}))
+
+const DUST_MOTES = Array.from({ length: 14 }, (_, i) => ({
+  left: `${6 + (i * 6.8) % 88}%`,
+  bottom: `${10 + (i * 7) % 40}%`,
+  delay: `${(i * 0.5) % 5}s`,
+  dur: `${4 + (i * 0.4) % 4}s`,
+  size: 2 + (i % 3),
+  dx: `${-20 + (i * 11) % 40}px`,
+  color: i % 3 === 0 ? '#c4a35a55' : i % 3 === 1 ? '#6b605588' : '#3d342877',
+}))
+
+function AcidRain() {
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2, overflow: 'hidden' }}>
+      {ACID_DROPS.map((d, i) => (
+        <div key={i} style={{
+          position: 'absolute', top: 0, left: d.left,
+          width: d.width, height: d.height,
+          background: d.color,
+          borderRadius: 1,
+          animation: `acidDrop ${d.dur} ${d.delay} linear infinite`,
+          imageRendering: 'pixelated',
+        }} />
+      ))}
+    </div>
+  )
+}
+
+function DustParticles() {
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2, overflow: 'hidden' }}>
+      {DUST_MOTES.map((d, i) => (
+        <div key={i} style={{
+          position: 'absolute', left: d.left, bottom: d.bottom,
+          width: d.size, height: d.size,
+          background: d.color,
+          ['--dx' as string]: d.dx,
+          animation: `dustFloat ${d.dur} ${d.delay} ease-in-out infinite`,
+          imageRendering: 'pixelated',
+        }} />
+      ))}
     </div>
   )
 }
@@ -646,6 +710,8 @@ export default function DashboardPage() {
       {showGoogleModal && user && token && <GoogleTasksModal token={token} onClose={() => setShowGoogleModal(false)} onImported={() => qc.invalidateQueries({ queryKey: ['tasks'] })} />}
       <div style={{ position: 'fixed', inset: 0, backgroundImage: `url(${bgImg})`, backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0, imageRendering: 'pixelated' }} />
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.62)', zIndex: 1 }} />
+      <AcidRain />
+      <DustParticles />
 
       <header style={{ position: 'relative', zIndex: 10, background: 'rgba(8,6,3,0.92)', borderBottom: '2px solid #3d3428', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
