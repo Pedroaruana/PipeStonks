@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
@@ -447,6 +447,60 @@ function GoogleTasksModal({ token, onClose, onImported }: { token: string; onClo
   )
 }
 
+// ── Toast system ────────────────────────────────────────────────────────────
+interface Toast { id: number; msg: string; type: 'ok' | 'err' | 'info' }
+let _toastId = 0
+const _listeners = new Set<(t: Toast) => void>()
+function emitToast(msg: string, type: Toast['type'] = 'ok') {
+  const t = { id: ++_toastId, msg, type }
+  _listeners.forEach((fn) => fn(t))
+}
+export const toast = {
+  ok:   (msg: string) => emitToast(msg, 'ok'),
+  err:  (msg: string) => emitToast(msg, 'err'),
+  info: (msg: string) => emitToast(msg, 'info'),
+}
+
+function useToasts() {
+  const [toasts, setToasts] = useState<Toast[]>([])
+  const addToast = useCallback((t: Toast) => {
+    setToasts((prev) => [...prev, t])
+    setTimeout(() => setToasts((prev) => prev.filter((x) => x.id !== t.id)), 3000)
+  }, [])
+  useEffect(() => {
+    _listeners.add(addToast)
+    return () => { _listeners.delete(addToast) }
+  }, [addToast])
+  return toasts
+}
+
+const TOAST_COLOR = { ok: '#7ab648', err: '#c0392b', info: '#c4a35a' }
+
+function ToastContainer() {
+  const toasts = useToasts()
+  return (
+    <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+      {toasts.map((t) => (
+        <div key={t.id} style={{
+          fontFamily: 'var(--pixel-font)',
+          fontSize: '6px',
+          padding: '8px 14px',
+          background: 'rgba(8,5,2,0.96)',
+          border: `2px solid ${TOAST_COLOR[t.type]}`,
+          color: TOAST_COLOR[t.type],
+          letterSpacing: '1px',
+          boxShadow: `0 0 12px ${TOAST_COLOR[t.type]}55`,
+          animation: 'oxyText 0.2s ease-out both',
+          whiteSpace: 'nowrap',
+        }}>
+          {t.type === 'ok' ? '▶ ' : t.type === 'err' ? '✕ ' : '· '}{t.msg}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Ambient FX ───────────────────────────────────────────────────────────────
 const ACID_DROPS = Array.from({ length: 18 }, (_, i) => ({
   left: `${4 + (i * 5.4) % 93}%`,
   delay: `${(i * 0.31) % 4}s`,
@@ -689,22 +743,26 @@ export default function DashboardPage() {
   function handlePlant(title: string) {
     if (!user) visitor.addTask(title, '')
     else plantMutation.mutate(title)
+    toast.ok(`${title.slice(0, 10)} plantada!`)
   }
 
   function handleWater(id: string) {
     if (!user) visitor.waterTask(id)
     else waterMutation.mutate(id)
+    toast.info('Regada — próxima em 8h')
   }
 
   function handleHarvest(id: string) {
     if (!user) visitor.harvestTask(id)
     else harvestMutation.mutate(id)
+    toast.ok('+10 O₂ coletado!')
   }
 
   const slots: (Task | undefined)[] = Array.from({ length: MAX_SLOTS }, (_, i) => tasks[i])
 
   return (
     <div style={{ minHeight: '100vh', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+      <ToastContainer />
       {showTutorial && <TutorialModal onClose={() => setShowTutorial(false)} />}
       {showOxyAnim && <OxygenRestoredOverlay onDone={() => setShowOxyAnim(false)} />}
       {showGoogleModal && user && token && <GoogleTasksModal token={token} onClose={() => setShowGoogleModal(false)} onImported={() => qc.invalidateQueries({ queryKey: ['tasks'] })} />}
@@ -713,13 +771,13 @@ export default function DashboardPage() {
       <AcidRain />
       <DustParticles />
 
-      <header style={{ position: 'relative', zIndex: 10, background: 'rgba(8,6,3,0.92)', borderBottom: '2px solid #3d3428', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+      <header className="wg-header" style={{ position: 'relative', zIndex: 10, background: 'rgba(8,6,3,0.92)', borderBottom: '2px solid #3d3428', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <span style={{ fontFamily: 'var(--pixel-font)', fontSize: '10px', color: '#7ab648' }}>🌱 WASTELAND GARDEN</span>
           <span style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#8a7a65' }}>{isVisitor ? 'Modo visitante' : user?.name}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 120 }}>
+        <div className="wg-header-right" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div className="wg-oxygen-bar" style={{ width: 120 }}>
             <span style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#4fc3a0', display: 'block', marginBottom: 2 }}>O₂ {oxygenLevel}</span>
             <OxygenBar value={barValue} />
           </div>
@@ -734,7 +792,7 @@ export default function DashboardPage() {
       </header>
 
       {isVisitor && (
-        <div style={{ position: 'relative', zIndex: 10, background: 'rgba(42,30,8,0.92)', borderBottom: '2px solid #c4a35a', padding: '8px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#c4a35a' }}>
+        <div className="wg-visitor-banner" style={{ position: 'relative', zIndex: 10, background: 'rgba(42,30,8,0.92)', borderBottom: '2px solid #c4a35a', padding: '8px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#c4a35a' }}>
           <span>⚠ Modo visitante — progresso não salvo</span>
           <Link to="/register" style={{ color: '#7ab648', fontFamily: 'var(--pixel-font)', fontSize: '6px', textDecoration: 'none' }}>Criar conta para salvar →</Link>
         </div>
@@ -742,7 +800,7 @@ export default function DashboardPage() {
 
       <main style={{ position: 'relative', zIndex: 10, flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', gap: 16 }}>
         <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '7px', color: '#3d3428', letterSpacing: '4px' }}>— CANTEIRO —</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 130px)', gap: 18 }}>
+        <div className="wg-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 130px)', gap: 18 }}>
           {slots.map((task, i) => (
             <PotSlot key={task?.id ?? `slot-${i}`} task={task} slotIndex={i} onWater={handleWater} onPlant={handlePlant} onHarvest={handleHarvest} />
           ))}
