@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { canWater, daysToStage } from '../schemas/task.js'
+import { canWater, daysToStage, isDead } from '../schemas/task.js'
 
 describe('canWater', () => {
   it('retorna true quando nunca regou', () => {
@@ -44,5 +44,31 @@ describe('daysToStage', () => {
   it('retorna FRUIT apos 7+ dias', () => {
     const t = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000)
     expect(daysToStage(t)).toBe('FRUIT')
+  })
+})
+
+describe('isDead', () => {
+  it('nao morre se foi regada agora', () => {
+    expect(isDead(new Date(), new Date(Date.now() - 5 * 24 * 60 * 60 * 1000))).toBe(false)
+  })
+
+  it('nao morre se foi regada ha 12h', () => {
+    const t = new Date(Date.now() - 12 * 60 * 60 * 1000)
+    expect(isDead(t, new Date(Date.now() - 5 * 24 * 60 * 60 * 1000))).toBe(false)
+  })
+
+  it('morre se foi regada ha mais de 24h', () => {
+    const t = new Date(Date.now() - 25 * 60 * 60 * 1000)
+    expect(isDead(t, new Date(Date.now() - 5 * 24 * 60 * 60 * 1000))).toBe(true)
+  })
+
+  it('morre se nunca foi regada e foi plantada ha mais de 24h', () => {
+    const planted = new Date(Date.now() - 26 * 60 * 60 * 1000)
+    expect(isDead(null, planted)).toBe(true)
+  })
+
+  it('nao morre se nunca foi regada mas plantada ha menos de 24h', () => {
+    const planted = new Date(Date.now() - 5 * 60 * 60 * 1000)
+    expect(isDead(null, planted)).toBe(false)
   })
 })

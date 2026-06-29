@@ -51,6 +51,7 @@ model Task {
   plantedAt     DateTime   @default(now())
   lastWateredAt DateTime?
   completedAt   DateTime?
+  diedAt        DateTime?
   userId        String
   categoryId    String?
   googleTaskId  String?
@@ -67,6 +68,7 @@ enum HistoryAction {
   WATERED
   HARVESTED
   PRUNED
+  DIED
 }
 
 model History {

@@ -9,10 +9,18 @@ export const createTaskSchema = z.object({
 export type CreateTaskInput = z.infer<typeof createTaskSchema>
 
 const HOURS_12 = 12 * 60 * 60 * 1000
+const HOURS_24 = 24 * 60 * 60 * 1000
+
+export const DEATH_OXYGEN_PENALTY = 10
 
 export function canWater(lastWateredAt: Date | null): boolean {
   if (!lastWateredAt) return true
   return Date.now() - lastWateredAt.getTime() >= HOURS_12
+}
+
+export function isDead(lastWateredAt: Date | null, plantedAt: Date): boolean {
+  const reference = lastWateredAt ?? plantedAt
+  return Date.now() - reference.getTime() > HOURS_24
 }
 
 export function daysToStage(plantedAt: Date): 'SEED' | 'SPROUT' | 'SAPLING' | 'TREE' | 'FRUIT' {
