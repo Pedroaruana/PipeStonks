@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify'
 import { PrismaClient } from '@prisma/client'
 import { authenticate } from '../middleware/authenticate.js'
-import { createTaskSchema, canWater, daysToStage, OXYGEN_BY_STAGE } from '../schemas/task.js'
+import { createTaskSchema, canWater, daysToStage, isDead, OXYGEN_BY_STAGE, DEATH_OXYGEN_PENALTY } from '../schemas/task.js'
 
 const prisma = new PrismaClient()
 
@@ -11,11 +11,27 @@ export async function taskRoutes(app: FastifyInstance) {
   app.get('/', async (request) => {
     const userId = (request.user as { sub: string }).sub
     const tasks = await prisma.task.findMany({
-      where: { userId, completedAt: null },
+      where: { userId, completedAt: null, diedAt: null },
       include: { category: true },
       orderBy: { createdAt: 'desc' },
     })
-    return tasks.map((t) => ({ ...t, stage: daysToStage(t.plantedAt) }))
+
+    const dead = tasks.filter((t) => isDead(t.lastWateredAt, t.plantedAt))
+    if (dead.length > 0) {
+      const now = new Date()
+      await Promise.all(dead.map((t) => prisma.task.update({ where: { id: t.id }, data: { diedAt: now } })))
+      await prisma.history.createMany({
+        data: dead.map((t) => ({ action: 'DIED' as const, taskId: t.id, userId })),
+      })
+      await prisma.user.update({
+        where: { id: userId },
+        data: { oxygenLevel: { decrement: DEATH_OXYGEN_PENALTY * dead.length } },
+      })
+    }
+
+    return tasks
+      .filter((t) => !isDead(t.lastWateredAt, t.plantedAt))
+      .map((t) => ({ ...t, stage: daysToStage(t.plantedAt) }))
   })
 
   app.post('/', async (request, reply) => {
