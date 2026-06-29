@@ -10,6 +10,16 @@ export interface VisitorTask {
   createdAt: string
   completedAt?: string
   lastWateredAt?: string | null
+  diedAt?: string
+}
+
+const HOURS_24 = 24 * 60 * 60 * 1000
+const DEATH_PENALTY = 10
+
+export function isVisitorTaskDead(t: VisitorTask): boolean {
+  if (t.diedAt || t.completedAt) return false
+  const ref = t.lastWateredAt ?? t.createdAt
+  return Date.now() - new Date(ref).getTime() > HOURS_24
 }
 
 function progressToStage(p: number): VisitorTask['stage'] {
@@ -27,6 +37,7 @@ interface VisitorStore {
   waterTask: (id: string) => void
   harvestTask: (id: string) => void
   pruneTask: (id: string) => void
+  purgeDead: () => number
 }
 
 export const useVisitorStore = create<VisitorStore>()(
@@ -71,6 +82,25 @@ export const useVisitorStore = create<VisitorStore>()(
 
       pruneTask: (id) =>
         set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) })),
+
+      purgeDead: () => {
+        let killed = 0
+        set((s) => {
+          const now = new Date().toISOString()
+          const tasks = s.tasks.map((t) => {
+            if (isVisitorTaskDead(t)) {
+              killed++
+              return { ...t, diedAt: now }
+            }
+            return t
+          })
+          return {
+            tasks,
+            oxygenLevel: Math.max(0, s.oxygenLevel - killed * DEATH_PENALTY),
+          }
+        })
+        return killed
+      },
     }),
     { name: 'wg-visitor' },
   ),

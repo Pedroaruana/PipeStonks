@@ -704,9 +704,16 @@ export default function DashboardPage() {
     enabled: !!user,
   })
 
+  useEffect(() => {
+    if (user) return
+    const killed = visitor.purgeDead()
+    if (killed > 0) toast.err(`${killed} planta${killed > 1 ? 's morreram' : ' morreu'} de sede! -${killed * 10} O₂`)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
+
   const tasks: Task[] = user
     ? apiTasks
-    : visitor.tasks.filter((t) => !(t as { completedAt?: string }).completedAt)
+    : visitor.tasks.filter((t) => !(t as { completedAt?: string; diedAt?: string }).completedAt && !(t as { diedAt?: string }).diedAt)
 
   const oxygenLevel = user ? (user.oxygenLevel ?? 0) : visitor.oxygenLevel
   const barValue = oxygenLevel % 100 === 0 && oxygenLevel > 0 ? 100 : oxygenLevel % 100
