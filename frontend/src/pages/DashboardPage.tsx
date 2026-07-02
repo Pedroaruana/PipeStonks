@@ -704,7 +704,15 @@ export default function DashboardPage() {
             <OxygenBar value={barValue} />
           </div>
           <Link to="/history" style={{ fontFamily: 'var(--pixel-font)', fontSize: '7px', color: '#c4a35a', textDecoration: 'none' }}>Estufa</Link>
-          <button className="px-btn px-btn-red" onClick={() => { logout(); navigate('/') }} style={{ fontSize: '6px' }}>Sair</button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'stretch' }}>
+            <button className="px-btn px-btn-red" onClick={() => { logout(); navigate('/') }} style={{ fontSize: '6px' }}>Sair</button>
+            <button
+              onClick={() => setShowTutorial(true)}
+              style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', background: 'transparent', border: '1px solid #c4a35a', color: '#c4a35a', padding: '4px 8px', cursor: 'pointer' }}
+            >
+              Como funciona
+            </button>
+          </div>
         </div>
       </header>
 

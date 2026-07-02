@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../lib/api'
 import { useAuthStore } from '../store/auth'
+import { STORY_SEEN_KEY } from './IntroPage'
 
 export default function RegisterPage() {
   const [name, setName] = useState('')
@@ -19,7 +20,7 @@ export default function RegisterPage() {
     try {
       const { data } = await api.post('/auth/register', { name, email, password })
       setAuth(data.user, data.token)
-      navigate('/garden')
+      navigate(localStorage.getItem(STORY_SEEN_KEY) ? '/garden' : '/intro')
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
       setError(msg ?? 'Erro ao criar conta')
@@ -66,9 +67,9 @@ export default function RegisterPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  root: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)' },
-  panel: { width: '320px', padding: '32px', background: 'var(--bg-panel)', border: '2px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' },
-  title: { fontFamily: 'var(--pixel-font)', fontSize: '14px', textAlign: 'center', lineHeight: 2 },
+  root: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)', padding: '16px 0' },
+  panel: { width: '320px', padding: '22px', background: 'var(--bg-panel)', border: '2px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' },
+  title: { fontFamily: 'var(--pixel-font)', fontSize: '14px', textAlign: 'center', lineHeight: 1.6 },
   form: { width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' },
   label: { fontFamily: 'var(--pixel-font)', fontSize: '6px', color: 'var(--text-secondary)', letterSpacing: '2px' },
   input: { fontFamily: 'var(--pixel-font)', fontSize: '8px', background: 'var(--bg-dark)', border: '2px solid var(--border)', color: 'var(--text-primary)', padding: '8px', outline: 'none', width: '100%' },

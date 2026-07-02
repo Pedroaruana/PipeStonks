@@ -1,7 +1,14 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import bg from '../c98146de-post-apocalyptic-wasteland-in-gritty-pixel-art-style-compressed.jpg'
+import { STORY_SEEN_KEY } from './IntroPage'
 
 export default function LandingPage() {
+  const navigate = useNavigate()
+
+  function handlePlay() {
+    navigate(localStorage.getItem(STORY_SEEN_KEY) ? '/garden?visitor=true' : '/intro?visitor=true')
+  }
+
   return (
     <div style={styles.root}>
       {/* Background with slow zoom animation */}
@@ -52,11 +59,9 @@ export default function LandingPage() {
 
         {/* Buttons */}
         <div style={styles.buttons}>
-          <Link to="/garden?visitor=true" style={{ textDecoration: 'none' }}>
-            <button style={styles.btnPrimary}>
-              ▶ JOGAR AGORA
-            </button>
-          </Link>
+          <button style={styles.btnPrimary} onClick={handlePlay}>
+            ▶ JOGAR AGORA
+          </button>
 
           <div style={styles.btnRow}>
             <Link to="/register" style={{ textDecoration: 'none' }}>
@@ -126,8 +131,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '20px',
-    padding: '40px 24px',
+    gap: '8px',
+    padding: '12px 24px',
     textAlign: 'center',
   },
   yearBadge: {
@@ -186,7 +191,7 @@ const styles: Record<string, React.CSSProperties> = {
   btnPrimary: {
     fontFamily: 'var(--pixel-font)',
     fontSize: '10px',
-    padding: '14px 32px',
+    padding: '10px 28px',
     background: '#2d5a1e',
     border: '2px solid #7ab648',
     color: '#7ab648',

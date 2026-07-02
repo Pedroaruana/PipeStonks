@@ -136,10 +136,39 @@ function CornerBrackets() {
   )
 }
 
+function PlantGalleryModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.75)' }} onClick={onClose}>
+      <div style={{ position: 'relative', width: 480, maxHeight: '80vh', overflowY: 'auto', background: 'rgba(8,6,2,0.97)', border: '2px solid #3d2e10', padding: '28px 24px' }} onClick={(e) => e.stopPropagation()}>
+        <CornerBrackets />
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '9px', color: '#c4a35a' }}>PLANTAS DISPONÍVEIS</p>
+          <button onClick={onClose} style={{ fontFamily: 'var(--pixel-font)', fontSize: '7px', background: 'transparent', border: '1px solid #3d3428', color: '#6b6055', padding: '3px 8px', cursor: 'pointer' }}>✕</button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+          {PLANT_TYPES.map((type) => (
+            <div key={type} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: '#1a1410', border: '1px solid #3d3428', padding: '14px 8px' }}>
+              <FruitPlant type={type} />
+              <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#e8dcc8' }}>{PLANT_EMOJI[type]} {PLANT_NAMES[type]}</p>
+            </div>
+          ))}
+        </div>
+
+        <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '5px', color: '#4a3f33', textAlign: 'center', marginTop: 16, lineHeight: 1.8 }}>
+          O tipo de planta é definido automaticamente ao plantar. Colha todas as 6 para completar a coleção!
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function HistoryPage() {
   const token = useAuthStore((s) => s.token)
   const visitorTasks = useVisitorStore((s) => s.tasks)
   const [filter, setFilter] = useState<PlantType | 'all'>('all')
+  const [showGallery, setShowGallery] = useState(false)
 
   const { data: apiTasks = [] } = useQuery<HarvestedTask[]>({
     queryKey: ['history'],
@@ -170,10 +199,20 @@ export default function HistoryPage() {
           <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '11px', color: '#c4a35a', letterSpacing: '2px' }}>ESTUFA</p>
           <p style={{ fontFamily: 'var(--pixel-font)', fontSize: '5px', color: '#4a3f33', marginTop: 4 }}>PLANTAS COLHIDAS — ARQUIVO DA WASTELAND</p>
         </div>
-        <Link to="/garden" style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#7ab648', textDecoration: 'none', border: '1px solid #7ab648', padding: '5px 10px' }}>
-          ‹ JARDIM
-        </Link>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => setShowGallery(true)}
+            style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#c4a35a', background: 'transparent', border: '1px solid #c4a35a', padding: '5px 10px', cursor: 'pointer' }}
+          >
+            🌿 TODAS AS PLANTAS
+          </button>
+          <Link to="/garden" style={{ fontFamily: 'var(--pixel-font)', fontSize: '6px', color: '#7ab648', textDecoration: 'none', border: '1px solid #7ab648', padding: '5px 10px' }}>
+            ‹ JARDIM
+          </Link>
+        </div>
       </header>
+
+      {showGallery && <PlantGalleryModal onClose={() => setShowGallery(false)} />}
 
       <main style={{ maxWidth: 860, margin: '0 auto', padding: '24px 16px' }}>
 
