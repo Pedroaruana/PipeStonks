@@ -14,6 +14,8 @@ interface Task {
   title: string
   stage: 'SEED' | 'SPROUT' | 'SAPLING' | 'TREE' | 'FRUIT'
   lastWateredAt?: string | null
+  createdAt?: string
+  plantedAt?: string
 }
 
 function canWaterNow(lastWateredAt?: string | null): boolean {
@@ -619,9 +621,15 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
-  const tasks: Task[] = user
+  const unsortedTasks: Task[] = user
     ? apiTasks
     : visitor.tasks.filter((t) => !(t as { completedAt?: string; diedAt?: string }).completedAt && !(t as { diedAt?: string }).diedAt)
+
+  const tasks: Task[] = [...unsortedTasks].sort((a, b) => {
+    const da = new Date(a.plantedAt ?? a.createdAt ?? 0).getTime()
+    const db = new Date(b.plantedAt ?? b.createdAt ?? 0).getTime()
+    return da - db
+  })
 
   const oxygenLevel = user ? (user.oxygenLevel ?? 0) : visitor.oxygenLevel
   const barValue = oxygenLevel % 100 === 0 && oxygenLevel > 0 ? 100 : oxygenLevel % 100
