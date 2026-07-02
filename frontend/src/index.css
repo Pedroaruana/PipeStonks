@@ -40,6 +40,10 @@ html, body, #root {
   font-size: 8px;
 }
 
+#root {
+  zoom: 1.5;
+}
+
 /* Pixel art scrollbar */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg-dark); }
