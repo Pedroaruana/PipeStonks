@@ -5,7 +5,6 @@ import { authRoutes } from './routes/auth.js'
 import { taskRoutes } from './routes/tasks.js'
 import { categoryRoutes } from './routes/categories.js'
 import { historyRoutes } from './routes/history.js'
-import { googleRoutes } from './routes/google.js'
 
 export async function buildApp() {
   const app = Fastify({ logger: true })
@@ -23,7 +22,6 @@ export async function buildApp() {
   app.register(taskRoutes, { prefix: '/tasks' })
   app.register(categoryRoutes, { prefix: '/categories' })
   app.register(historyRoutes, { prefix: '/history' })
-  app.register(googleRoutes)
 
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }))
 

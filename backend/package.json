@@ -19,7 +19,6 @@
     "@fastify/jwt": "^8.0.1",
     "@prisma/client": "^5.14.0",
     "fastify": "^4.27.0",
-    "googleapis": "^173.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

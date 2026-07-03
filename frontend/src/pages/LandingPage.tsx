@@ -1,12 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
 import bg from '../c98146de-post-apocalyptic-wasteland-in-gritty-pixel-art-style-compressed.jpg'
-import { STORY_SEEN_KEY } from './IntroPage'
 
 export default function LandingPage() {
   const navigate = useNavigate()
 
   function handlePlay() {
-    navigate(localStorage.getItem(STORY_SEEN_KEY) ? '/garden?visitor=true' : '/intro?visitor=true')
+    navigate('/intro?visitor=true')
   }
 
   return (
